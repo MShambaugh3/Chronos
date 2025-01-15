@@ -70,21 +70,31 @@
       }
     }
 
-    // Function to mark a task as complete and remove from Firebase
+    // Function to mark a task as complete, delete it from Firebase, and remove from the task list
     function markTaskComplete(category, taskKey, isChecked) {
       const taskRef = ref(database, `tasks/${category}/${taskKey}`);
-      update(taskRef, { completed: isChecked })
-        .then(() => {
-          if (isChecked) {
-            displayMessage("Task marked as complete.", 'success');
-          } else {
+      
+      if (isChecked) {
+        // Task is marked as completed, delete from database
+        remove(taskRef)
+          .then(() => {
+            displayMessage("Task marked as complete and removed.", 'success');
+            loadTasks(); // Reload tasks to update the view
+          })
+          .catch((error) => {
+            displayMessage("Error removing task: " + error.message, 'error');
+          });
+      } else {
+        // Optionally, we could handle unchecking tasks here
+        update(taskRef, { completed: false })
+          .then(() => {
             displayMessage("Task marked as incomplete.", 'error');
-          }
-          loadTasks(); // Reload tasks after updating
-        })
-        .catch((error) => {
-          displayMessage("Error updating task: " + error.message, 'error');
-        });
+            loadTasks(); // Reload tasks to update the view
+          })
+          .catch((error) => {
+            displayMessage("Error updating task: " + error.message, 'error');
+          });
+      }
     }
 
     // Function to display messages
