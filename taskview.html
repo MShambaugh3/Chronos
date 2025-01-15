@@ -6,7 +6,7 @@
   <title>Chronos Tool - Task View</title>
   <script type="module">
     import { database } from './firebaseConfig.js';
-    import { ref, get, child } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-database.js";
+    import { ref, get, child, remove, update } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-database.js";
 
     // Select the task display element
     const taskDisplay = document.getElementById("task-display");
@@ -47,12 +47,30 @@
         categoryTasks.forEach(task => {
           const listItem = document.createElement("li");
           listItem.textContent = task.task;
+          if (task.completed) {
+            listItem.style.textDecoration = "line-through"; // Cross out completed tasks
+          }
           taskList.appendChild(listItem);
+
+          // Add an event listener to mark tasks as completed
+          listItem.addEventListener("click", () => markTaskComplete(category, task.key));
         });
 
         categoryDiv.appendChild(taskList);
         taskDisplay.appendChild(categoryDiv);
       }
+    }
+
+    // Function to mark a task as complete and remove from Firebase
+    function markTaskComplete(category, taskKey) {
+      const taskRef = ref(database, `tasks/${category}/${taskKey}`);
+      update(taskRef, { completed: true })
+        .then(() => {
+          loadTasks(); // Reload tasks after completion
+        })
+        .catch((error) => {
+          alert("Error completing task: " + error.message);
+        });
     }
 
     // Load tasks when the page is loaded
@@ -72,5 +90,8 @@
       <!-- Tasks will be displayed here -->
     </div>
   </main>
+  <footer>
+    <p>Chronos Tool</p>
+  </footer>
 </body>
 </html>
