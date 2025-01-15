@@ -3,50 +3,67 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Chronos Tool</title>
+  <title>Chronos Tool - Add Task/Event</title>
   <script type="module">
     import { database } from './firebaseConfig.js';
     import { ref, push, set } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-database.js";
 
-    // Select elements
-    const categorySelect = document.getElementById("category-select");
+    const taskTypeSelect = document.getElementById("task-type");
     const taskInput = document.getElementById("task-input");
-    const submitButton = document.getElementById("submit-task");
-    const messageDisplay = document.getElementById("message-display");
+    const eventDateInput = document.getElementById("event-date");
+    const eventTimeInput = document.getElementById("event-time");
+    const executeButton = document.getElementById("execute-button");
 
-    // Function to save a task to the database
-    function saveTask(category, task) {
-      const taskRef = ref(database, `tasks/${category}`);
-      const newTaskRef = push(taskRef); // Add a new task to the category
-      set(newTaskRef, {
-        task: task,
+    // Function to save a task or event
+    function saveEntry(type, category, content, date = null, time = null) {
+      const entryRef = ref(database, `entries/${category}`);
+      const newEntryRef = push(entryRef);
+
+      const entryData = {
+        content: content,
+        type: type,
         completed: false,
-      })
+        date: date,
+        time: time,
+      };
+
+      set(newEntryRef, entryData)
         .then(() => {
-          displayMessage(`Task "${task}" added to "${category}" successfully.`, 'success');
+          displayMessage(`${type.charAt(0).toUpperCase() + type.slice(1)} "${content}" added to "${category}".`);
         })
         .catch((error) => {
-          displayMessage(`Error adding task: ${error.message}`, 'error');
+          displayMessage("Error adding entry: " + error.message, 'error');
         });
     }
 
+    // Event handler for adding task or event
+    executeButton.addEventListener("click", () => {
+      const category = document.getElementById("category").value;
+      const content = taskInput.value.trim();
+      const type = taskTypeSelect.value;
+      let date = null, time = null;
+
+      if (type === "event") {
+        date = eventDateInput.value;
+        time = eventTimeInput.value;
+      }
+
+      if (content) {
+        saveEntry(type, category, content, date, time);
+      } else {
+        displayMessage("Please enter a valid task or event.");
+      }
+
+      taskInput.value = ""; // Clear input
+      eventDateInput.value = ""; // Clear date input
+      eventTimeInput.value = ""; // Clear time input
+    });
+
     // Function to display messages
-    function displayMessage(message, type) {
+    function displayMessage(message, type = 'success') {
+      const messageDisplay = document.getElementById("message-display");
       messageDisplay.innerHTML = `<p class="${type}">${message}</p>`;
     }
-
-    // Submit task when button is clicked
-    submitButton.addEventListener("click", () => {
-      const category = categorySelect.value;
-      const task = taskInput.value.trim();
-
-      if (category && task) {
-        saveTask(category, task);
-        taskInput.value = ""; // Clear input
-      } else {
-        displayMessage("Please select a category and enter a task.", 'error');
-      }
-    });
   </script>
 </head>
 <body>
@@ -57,25 +74,42 @@
     </nav>
   </header>
   <main>
-    <h2>Add Task</h2>
-    <label for="category-select">Category:</label>
-    <select id="category-select">
-      <option value="school">School</option>
-      <option value="life">Life</option>
-      <option value="afrotc">AFROTC</option>
-      <option value="misc">Miscellaneous</option>
-    </select>
-    <br/>
-    <label for="task-input">Task:</label>
-    <input type="text" id="task-input" placeholder="Type your task here..." />
-    <button id="submit-task">Submit Task</button>
+    <h2>Add Task/Event</h2>
     
-    <div id="message-display">
-      <!-- Messages will be displayed here -->
+    <div>
+      <label for="task-type">Task or Event:</label>
+      <select id="task-type">
+        <option value="task">Task</option>
+        <option value="event">Event</option>
+      </select>
     </div>
+
+    <div>
+      <label for="category">Category:</label>
+      <select id="category">
+        <option value="school">School</option>
+        <option value="life">Life</option>
+        <option value="AFROTC">AFROTC</option>
+        <option value="misc">Miscellaneous</option>
+      </select>
+    </div>
+
+    <div>
+      <label for="task-input">Task/Event Content:</label>
+      <input type="text" id="task-input" placeholder="Enter task or event" />
+    </div>
+
+    <div id="event-fields" style="display: none;">
+      <label for="event-date">Event Date:</label>
+      <input type="date" id="event-date" />
+      
+      <label for="event-time">Event Time:</label>
+      <input type="time" id="event-time" />
+    </div>
+
+    <button id="execute-button">Add Task/Event</button>
+
+    <div id="message-display"></div>
   </main>
-  <footer>
-    <p>Chronos Tool</p>
-  </footer>
 </body>
 </html>
