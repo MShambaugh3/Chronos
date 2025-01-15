@@ -12,27 +12,27 @@
     const taskDisplay = document.getElementById("task-display");
     const messageDisplay = document.getElementById("message-display");
 
-    // Function to load tasks from the database
-    function loadTasks() {
-      const tasksRef = ref(database, 'tasks/');
+    // Function to load tasks and events from the database
+    function loadEntries() {
+      const tasksRef = ref(database, 'entries/');
       get(tasksRef)
         .then((snapshot) => {
           if (snapshot.exists()) {
-            const tasks = snapshot.val();
-            displayTasks(tasks);
+            const entries = snapshot.val();
+            displayEntries(entries);
           } else {
-            taskDisplay.innerHTML = "No tasks available.";
+            taskDisplay.innerHTML = "No tasks or events available.";
           }
         })
         .catch((error) => {
-          taskDisplay.innerHTML = "Error loading tasks: " + error.message;
+          taskDisplay.innerHTML = "Error loading entries: " + error.message;
         });
     }
 
-    // Function to display tasks on the page
-    function displayTasks(tasks) {
-      taskDisplay.innerHTML = ""; // Clear any existing tasks
-      for (const category in tasks) {
+    // Function to display tasks and events on the page
+    function displayEntries(entries) {
+      taskDisplay.innerHTML = ""; // Clear any existing entries
+      for (const category in entries) {
         const categoryDiv = document.createElement("div");
         categoryDiv.classList.add("category");
 
@@ -40,59 +40,67 @@
         categoryHeader.textContent = category;
         categoryDiv.appendChild(categoryHeader);
 
-        const taskList = document.createElement("ul");
+        const entryList = document.createElement("ul");
 
-        // Convert tasks[category] to an array and iterate over them
-        const categoryTasks = Object.entries(tasks[category]);
-
-        categoryTasks.forEach(([key, task]) => {
+        // Iterate over each entry (task or event) in the category
+        for (const entryKey in entries[category]) {
+          const entry = entries[category][entryKey];
           const listItem = document.createElement("li");
 
-          const taskText = document.createElement("span");
-          taskText.textContent = task.task;
-          if (task.completed) {
-            taskText.style.textDecoration = "line-through"; // Cross out completed tasks
+          // Display task/event content
+          const entryText = document.createElement("span");
+          entryText.textContent = entry.content;
+
+          // If it's an event, display date and time
+          if (entry.type === "event") {
+            const eventDetails = document.createElement("span");
+            eventDetails.textContent = ` - Date: ${entry.date}, Time: ${entry.time}`;
+            entryText.appendChild(eventDetails);
           }
 
-          const taskCheckbox = document.createElement("input");
-          taskCheckbox.type = "checkbox";
-          taskCheckbox.checked = task.completed;
+          if (entry.completed) {
+            entryText.style.textDecoration = "line-through"; // Cross out completed tasks
+          }
 
-          taskCheckbox.addEventListener("change", () => markTaskComplete(category, key, taskCheckbox.checked));
+          const entryCheckbox = document.createElement("input");
+          entryCheckbox.type = "checkbox";
+          entryCheckbox.checked = entry.completed;
 
-          listItem.appendChild(taskCheckbox);
-          listItem.appendChild(taskText);
-          taskList.appendChild(listItem);
-        });
+          entryCheckbox.addEventListener("change", () => markEntryComplete(category, entryKey, entryCheckbox.checked));
 
-        categoryDiv.appendChild(taskList);
+          listItem.appendChild(entryCheckbox);
+          listItem.appendChild(entryText);
+          entryList.appendChild(listItem);
+        }
+
+        categoryDiv.appendChild(entryList);
         taskDisplay.appendChild(categoryDiv);
       }
     }
 
-    // Function to mark a task as complete, delete it from Firebase, and remove from the task list
-    function markTaskComplete(category, taskKey, isChecked) {
-      const taskRef = ref(database, `tasks/${category}/${taskKey}`);
-      
+    // Function to mark an entry (task/event) as complete, delete it from Firebase, and remove from the task list
+    function markEntryComplete(category, entryKey, isChecked) {
+      const entryRef = ref(database, `entries/${category}/${entryKey}`);
+
       if (isChecked) {
-        // Task is marked as completed, delete from database
-        remove(taskRef)
+        // Entry is marked as completed, delete from database
+        remove(entryRef)
           .then(() => {
-            displayMessage("Task marked as complete and removed.", 'success');
-            loadTasks(); // Reload tasks to update the view
+            displayMessage("Entry marked as complete and removed.", 'success');
+            loadEntries(); // Reload entries to update the view
           })
           .catch((error) => {
-            displayMessage("Error removing task: " + error.message, 'error');
+            displayMessage("Error removing entry: " + error.message, 'error');
           });
       } else {
         // Optionally, we could handle unchecking tasks here
-        update(taskRef, { completed: false })
+        update(entryRef, { completed: false })
           .then(() => {
-            displayMessage("Task marked as incomplete.", 'error');
-            loadTasks(); // Reload tasks to update the view
+            displayMessage("Entry marked as incomplete.", 'error');
+            loadEntries(); // Reload entries to update the view
           })
           .catch((error) => {
-            displayMessage("Error updating task: " + error.message, 'error');
+            displayMessage("Error updating entry: " + error.message, 'error');
           });
       }
     }
@@ -102,8 +110,8 @@
       messageDisplay.innerHTML = `<p class="${type}">${message}</p>`;
     }
 
-    // Load tasks when the page is loaded
-    window.onload = loadTasks;
+    // Load tasks and events when the page is loaded
+    window.onload = loadEntries;
   </script>
 </head>
 <body>
@@ -116,7 +124,7 @@
   <main>
     <h2>Task View</h2>
     <div id="task-display">
-      <!-- Tasks will be displayed here -->
+      <!-- Tasks and events will be displayed here -->
     </div>
 
     <div id="message-display">
