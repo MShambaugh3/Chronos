@@ -3,10 +3,28 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Jarvis Tool</title>
+  <title>Chronos Tool</title>
   <script type="module">
-    import { database } from './firebaseConfig.js';
-    import { ref, push, set } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-database.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-analytics.js";
+    import { getDatabase, ref, set, push } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-database.js";
+
+    // Your web app's Firebase configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyAjY68DBd8pojH0eGJSiYh52EcZ_Dm1Xfg",
+      authDomain: "chronos-tool.firebaseapp.com",
+      databaseURL: "https://chronos-tool-default-rtdb.firebaseio.com",
+      projectId: "chronos-tool",
+      storageBucket: "chronos-tool.firebasestorage.app",
+      messagingSenderId: "181069376031",
+      appId: "1:181069376031:web:878970e61dd957880dc32a",
+      measurementId: "G-DK35X8H4H2"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const analytics = getAnalytics(app);
+    const database = getDatabase();
 
     // Select elements
     const commandInput = document.getElementById("command-input");
@@ -34,24 +52,27 @@
       responseDisplay.innerHTML = `<p>${message}</p>`;
     }
 
+    // Function to parse the task command using keywords
+    function parseCommand(command) {
+      // Regular expression to match command pattern
+      const regex = /add.*to\s(\w+):\s(.+)/i;
+      const match = command.match(regex);
+
+      if (match) {
+        const category = match[1];
+        const task = match[2];
+        saveTask(category, task);
+      } else {
+        displayResponse("Invalid command format. Please use: 'add task to [category]: [task]'");
+      }
+    }
+
     // Execute command when button is clicked
     executeButton.addEventListener("click", () => {
       const command = commandInput.value.trim();
-
-      if (command.startsWith("add task")) {
-        // Example command: "add task to AFROTC: Complete assignment"
-        const match = command.match(/add task to (\w+): (.+)/);
-        if (match) {
-          const category = match[1];
-          const task = match[2];
-          saveTask(category, task);
-        } else {
-          displayResponse("Invalid command format. Use: 'add task to [category]: [task]'");
-        }
-      } else {
-        displayResponse("Unknown command. Please try again.");
+      if (command) {
+        parseCommand(command); // Parse and execute the command
       }
-
       commandInput.value = ""; // Clear input
     });
   </script>
