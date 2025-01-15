@@ -8,8 +8,9 @@
     import { database } from './firebaseConfig.js';
     import { ref, get, child, remove, update } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-database.js";
 
-    // Select the task display element
+    // Select elements
     const taskDisplay = document.getElementById("task-display");
+    const messageDisplay = document.getElementById("message-display");
 
     // Function to load tasks from the database
     function loadTasks() {
@@ -42,18 +43,26 @@
         const taskList = document.createElement("ul");
 
         // Convert tasks[category] to an array and iterate over them
-        const categoryTasks = Object.values(tasks[category]);
+        const categoryTasks = Object.entries(tasks[category]);
 
-        categoryTasks.forEach(task => {
+        categoryTasks.forEach(([key, task]) => {
           const listItem = document.createElement("li");
-          listItem.textContent = task.task;
-          if (task.completed) {
-            listItem.style.textDecoration = "line-through"; // Cross out completed tasks
-          }
-          taskList.appendChild(listItem);
 
-          // Add an event listener to mark tasks as completed
-          listItem.addEventListener("click", () => markTaskComplete(category, task.key));
+          const taskText = document.createElement("span");
+          taskText.textContent = task.task;
+          if (task.completed) {
+            taskText.style.textDecoration = "line-through"; // Cross out completed tasks
+          }
+
+          const taskCheckbox = document.createElement("input");
+          taskCheckbox.type = "checkbox";
+          taskCheckbox.checked = task.completed;
+
+          taskCheckbox.addEventListener("change", () => markTaskComplete(category, key, taskCheckbox.checked));
+
+          listItem.appendChild(taskCheckbox);
+          listItem.appendChild(taskText);
+          taskList.appendChild(listItem);
         });
 
         categoryDiv.appendChild(taskList);
@@ -62,15 +71,25 @@
     }
 
     // Function to mark a task as complete and remove from Firebase
-    function markTaskComplete(category, taskKey) {
+    function markTaskComplete(category, taskKey, isChecked) {
       const taskRef = ref(database, `tasks/${category}/${taskKey}`);
-      update(taskRef, { completed: true })
+      update(taskRef, { completed: isChecked })
         .then(() => {
-          loadTasks(); // Reload tasks after completion
+          if (isChecked) {
+            displayMessage("Task marked as complete.", 'success');
+          } else {
+            displayMessage("Task marked as incomplete.", 'error');
+          }
+          loadTasks(); // Reload tasks after updating
         })
         .catch((error) => {
-          alert("Error completing task: " + error.message);
+          displayMessage("Error updating task: " + error.message, 'error');
         });
+    }
+
+    // Function to display messages
+    function displayMessage(message, type) {
+      messageDisplay.innerHTML = `<p class="${type}">${message}</p>`;
     }
 
     // Load tasks when the page is loaded
@@ -88,6 +107,10 @@
     <h2>Task View</h2>
     <div id="task-display">
       <!-- Tasks will be displayed here -->
+    </div>
+
+    <div id="message-display">
+      <!-- Completion messages will be displayed here -->
     </div>
   </main>
   <footer>
