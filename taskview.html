@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Jarvis Tool - Task View</title>
+  <title>Chronos Tool - Task View</title>
   <script type="module">
     import { database } from './firebaseConfig.js';
     import { ref, get, child } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-database.js";
@@ -40,7 +40,11 @@
         categoryDiv.appendChild(categoryHeader);
 
         const taskList = document.createElement("ul");
-        tasks[category].forEach(task => {
+
+        // Convert tasks[category] to an array and iterate over them
+        const categoryTasks = Object.values(tasks[category]);
+
+        categoryTasks.forEach(task => {
           const listItem = document.createElement("li");
           listItem.textContent = task.task;
           taskList.appendChild(listItem);
