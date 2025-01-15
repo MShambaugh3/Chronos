@@ -6,7 +6,7 @@
   <title>Chronos Tool - Task View</title>
   <script type="module">
     import { database } from './firebaseConfig.js';
-    import { ref, get, child, remove } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-database.js";
+    import { ref, get, child } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-database.js";
 
     // Select the task display element
     const taskDisplay = document.getElementById("task-display");
@@ -41,51 +41,18 @@
 
         const taskList = document.createElement("ul");
 
-        tasks[category].forEach((task, taskId) => {
+        // Convert tasks[category] to an array and iterate over them
+        const categoryTasks = Object.values(tasks[category]);
+
+        categoryTasks.forEach(task => {
           const listItem = document.createElement("li");
-
-          // Create a checkbox for task completion
-          const checkbox = document.createElement("input");
-          checkbox.type = "checkbox";
-          checkbox.classList.add("task-checkbox");
-
-          // Mark task as completed if it is
-          if (task.completed) {
-            listItem.style.textDecoration = "line-through";
-            checkbox.checked = true;
-          }
-
-          // When checkbox is clicked, update task status
-          checkbox.addEventListener("change", () => {
-            if (checkbox.checked) {
-              listItem.style.textDecoration = "line-through";
-              removeTask(category, taskId); // Remove task from database if checked
-            } else {
-              listItem.style.textDecoration = "none";
-            }
-          });
-
           listItem.textContent = task.task;
-          listItem.prepend(checkbox); // Add checkbox before task text
           taskList.appendChild(listItem);
         });
 
         categoryDiv.appendChild(taskList);
         taskDisplay.appendChild(categoryDiv);
       }
-    }
-
-    // Function to remove a task from the database
-    function removeTask(category, taskId) {
-      const taskRef = ref(database, `tasks/${category}/${taskId}`);
-      remove(taskRef)
-        .then(() => {
-          console.log(`Task "${taskId}" removed successfully.`);
-          loadTasks(); // Reload tasks after deletion
-        })
-        .catch((error) => {
-          console.error("Error removing task: ", error);
-        });
     }
 
     // Load tasks when the page is loaded
