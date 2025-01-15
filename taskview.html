@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jarvis Tool - Task View</title>
+  <script type="module">
+    import { database } from './firebaseConfig.js';
+    import { ref, get, child } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-database.js";
+
+    // Select the task display element
+    const taskDisplay = document.getElementById("task-display");
+
+    // Function to load tasks from the database
+    function loadTasks() {
+      const tasksRef = ref(database, 'tasks/');
+      get(tasksRef)
+        .then((snapshot) => {
+          if (snapshot.exists()) {
+            const tasks = snapshot.val();
+            displayTasks(tasks);
+          } else {
+            taskDisplay.innerHTML = "No tasks available.";
+          }
+        })
+        .catch((error) => {
+          taskDisplay.innerHTML = "Error loading tasks: " + error.message;
+        });
+    }
+
+    // Function to display tasks on the page
+    function displayTasks(tasks) {
+      taskDisplay.innerHTML = ""; // Clear any existing tasks
+      for (const category in tasks) {
+        const categoryDiv = document.createElement("div");
+        categoryDiv.classList.add("category");
+
+        const categoryHeader = document.createElement("h3");
+        categoryHeader.textContent = category;
+        categoryDiv.appendChild(categoryHeader);
+
+        const taskList = document.createElement("ul");
+        tasks[category].forEach(task => {
+          const listItem = document.createElement("li");
+          listItem.textContent = task.task;
+          taskList.appendChild(listItem);
+        });
+
+        categoryDiv.appendChild(taskList);
+        taskDisplay.appendChild(categoryDiv);
+      }
+    }
+
+    // Load tasks when the page is loaded
+    window.onload = loadTasks;
+  </script>
+</head>
+<body>
+  <header>
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="taskview.html">Task View</a>
+    </nav>
+  </header>
+  <main>
+    <h2>Task View</h2>
+    <div id="task-display">
+      <!-- Tasks will be displayed here -->
+    </div>
+  </main>
+</body>
+</html>

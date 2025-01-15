@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jarvis Tool</title>
+  <script type="module">
+    import { database } from './firebaseConfig.js';
+    import { ref, push, set } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-database.js";
+
+    // Select elements
+    const commandInput = document.getElementById("command-input");
+    const executeButton = document.getElementById("execute-command");
+    const responseDisplay = document.getElementById("response-display");
+
+    // Function to save a task to the database
+    function saveTask(category, task) {
+      const taskRef = ref(database, `tasks/${category}`);
+      const newTaskRef = push(taskRef); // Add a new task to the category
+      set(newTaskRef, {
+        task: task,
+        completed: false,
+      })
+        .then(() => {
+          displayResponse(`Task "${task}" added to "${category}" successfully.`);
+        })
+        .catch((error) => {
+          displayResponse(`Error adding task: ${error.message}`);
+        });
+    }
+
+    // Display a response on the screen
+    function displayResponse(message) {
+      responseDisplay.innerHTML = `<p>${message}</p>`;
+    }
+
+    // Execute command when button is clicked
+    executeButton.addEventListener("click", () => {
+      const command = commandInput.value.trim();
+
+      if (command.startsWith("add task")) {
+        // Example command: "add task to AFROTC: Complete assignment"
+        const match = command.match(/add task to (\w+): (.+)/);
+        if (match) {
+          const category = match[1];
+          const task = match[2];
+          saveTask(category, task);
+        } else {
+          displayResponse("Invalid command format. Use: 'add task to [category]: [task]'");
+        }
+      } else {
+        displayResponse("Unknown command. Please try again.");
+      }
+
+      commandInput.value = ""; // Clear input
+    });
+  </script>
+</head>
+<body>
+  <header>
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="taskview.html">Task View</a>
+    </nav>
+  </header>
+  <main>
+    <div id="response-display">
+      <p>Responses will appear here...</p>
+    </div>
+  </main>
+  <footer>
+    <input type="text" id="command-input" placeholder="Type a command..." />
+    <button id="execute-command">Execute</button>
+  </footer>
+</body>
+</html>
