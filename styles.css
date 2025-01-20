@@ -1,115 +1,186 @@
-/* General Styles */
+/* Global Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
 body {
-  font-family: Helvetica, Arial, sans-serif;
-  margin: 0;
-  padding: 0;
-  background-color: white; /* Default light mode background */
-  color: black;
-  transition: background-color 0.3s ease, color 0.3s ease;
+    font-family: 'Montserrat', sans-serif;
+    line-height: 1.6;
+    background-color: #e3dfd4; /* Light mode default background */
+    color: #666e55; /* Light mode default text color */
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+/* Header Styles */
+header {
+    width: 100%;
+    background-color: #f8f8f8; /* Light mode header */
+    color: #666e55; 
+    padding: 15px 0;
+    text-align: center;
+    font-size: 1.5em;
+    font-weight: bold;
+    letter-spacing: 1px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+}
+
+header a {
+    color: #666e55; 
+    padding: 0 20px;
+}
+
+header a:hover {
+    color: #288683; /* Accent color on hover */
 }
 
 /* Dark Mode */
 body.dark-mode {
-  background-color: black;
-  color: white;
+    background-color: #288683; /* Dark mode default background */
+    color: #ffebd0; /* Dark mode text color */
 }
 
-body.dark-mode .save-button,
-body.dark-mode .dark-mode-button {
-  background-color: #006400; /* Code Green for Dark Mode */
-  color: white;
+body.dark-mode header {
+    background-color: #1d6651; /* Dark mode header */
+    color: #ffebd0;
 }
 
-body.dark-mode .save-button:hover,
-body.dark-mode .dark-mode-button:hover {
-  background-color: #004d00; /* Darker Green for hover effect */
+body.dark-mode .button {
+    background-color: #ffebd0;
+    color: #288683;
 }
 
-/* Light Mode */
-body:not(.dark-mode) {
-  background-color: white;
-  color: black;
+body.dark-mode .button:hover {
+    background-color: #ffcc99; /* Soft hover effect for dark mode */
 }
 
-body:not(.dark-mode) .save-button,
-body:not(.dark-mode) .dark-mode-button {
-  background-color: midnight; /* Midnight color for light mode */
-  color: white;
+/* Navigation Button */
+.button {
+    display: inline-block;
+    padding: 12px 30px;
+    margin: 10px;
+    font-size: 16px;
+    background-color: #e3dfd4; /* Light mode button background */
+    color: #666e55; /* Light mode text color */
+    border: none;
+    cursor: pointer;
+    text-align: center;
+    letter-spacing: 1px;
+    border-radius: 4px;
+    transition: background-color 0.3s, transform 0.1s;
 }
 
-body:not(.dark-mode) .save-button:hover,
-body:not(.dark-mode) .dark-mode-button:hover {
-  background-color: #2e3b49; /* 20% darker midnight for hover effect */
+.button:hover {
+    background-color: #d0cab3; /* Slightly darker button for hover effect */
 }
 
-/* Notes Section */
-#notes {
-  padding: 20px;
-  margin: 20px;
-  border-radius: 10px;
-  background-color: #f4f4f4;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+.button:active {
+    transform: translateY(2px); /* "Push" effect on click */
 }
 
-#notes h2 {
-  font-size: 24px;
-  margin-bottom: 10px;
+/* Task View Styles */
+.task-view {
+    padding: 80px 20px 20px; /* Adjust padding to avoid overlap with header */
+    text-align: center;
 }
 
-/* Textarea */
-#note-text {
-  width: 100%;
-  height: 150px;
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  font-size: 16px;
-  background-color: #fff;
-  color: black;
-  margin-bottom: 20px;
-  resize: none;
+.task {
+    background-color: #fff;
+    margin: 10px;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
 }
 
-#note-text:focus {
-  outline: none;
-  border-color: #006400; /* Green focus border */
+.task.completed {
+    text-decoration: line-through;
+    color: #888;
 }
 
-/* Canvas */
-#note-canvas {
-  border: 1px solid #ccc;
-  margin-bottom: 20px;
-  background-color: #eaeaea;
+.task .timestamp {
+    font-size: 0.8em;
+    color: #666e55;
 }
 
-/* Buttons */
-button {
-  padding: 10px 20px;
-  font-size: 16px;
-  border-radius: 5px;
-  border: none;
-  cursor: pointer;
+/* Notes Page Styles */
+.notes-container {
+    padding: 80px 20px 20px;
+    text-align: center;
 }
 
-.save-button {
-  background-color: #006400; /* Code Green */
-  color: white;
+.notes {
+    background-color: #fff;
+    margin: 20px;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+    height: 300px;
+    overflow-y: auto;
+    border: 1px solid #ccc;
 }
 
-.save-button:hover {
-  background-color: #004d00; /* Darker Green */
+textarea {
+    width: 100%;
+    height: 100%;
+    background-color: transparent;
+    color: inherit;
+    border: none;
+    font-size: 16px;
+    padding: 10px;
+    resize: none;
 }
 
-/* Dark Mode Button */
-.dark-mode-button {
-  background-color: #4e4e4e;
-  color: white;
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  border-radius: 50%;
+textarea:focus {
+    outline: none;
+    background-color: #f8f8f8; /* Focused textarea */
 }
 
-.dark-mode-button:hover {
-  background-color: #333;
+.canvas {
+    border: 1px solid #ccc;
+    background-color: transparent;
+    margin-top: 20px;
+    width: 100%;
+    height: 400px;
+}
+
+/* Responsive Design */
+@media screen and (max-width: 768px) {
+    header {
+        font-size: 1.2em;
+        padding: 10px 0;
+    }
+
+    .button {
+        padding: 10px 25px;
+    }
+
+    .task-view, .notes-container {
+        padding: 60px 20px;
+    }
+
+    .task, .notes {
+        margin: 10px 0;
+        padding: 12px;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    .button {
+        font-size: 14px;
+        padding: 8px 20px;
+    }
+
+    .task, .notes {
+        padding: 10px;
+    }
 }
