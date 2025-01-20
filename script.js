@@ -96,3 +96,55 @@ async function uploadFileToStorage(filePath, file) {
 // Upload a file to Firebase Storage
 // const file = new File(["Hello, Firebase!"], "hello.txt", { type: "text/plain" });
 // uploadFileToStorage("uploads/hello.txt", file);
+
+
+    const timerForm = document.getElementById('timer-form');
+    const timerDisplay = document.getElementById('timer-display');
+    let focusTime, breakTime;
+    let focusInterval, breakInterval;
+
+    // Start Timer logic
+    timerForm.addEventListener('submit', (event) => {
+        event.preventDefault();
+        
+        focusTime = parseInt(document.getElementById('focus-duration').value) * 60; // Convert minutes to seconds
+        breakTime = parseInt(document.getElementById('break-duration').value) * 60; // Convert minutes to seconds
+
+        // Start Focus Timer
+        startFocusTimer();
+    });
+
+    // Start the Focus Timer
+    function startFocusTimer() {
+        clearInterval(breakInterval); // Clear any previous break timer
+        updateTimerDisplay(focusTime);
+        focusInterval = setInterval(() => {
+            focusTime--;
+            updateTimerDisplay(focusTime);
+            if (focusTime <= 0) {
+                clearInterval(focusInterval);
+                startBreakTimer();
+            }
+        }, 1000);
+    }
+
+    // Start the Break Timer
+    function startBreakTimer() {
+        updateTimerDisplay(breakTime);
+        breakInterval = setInterval(() => {
+            breakTime--;
+            updateTimerDisplay(breakTime);
+            if (breakTime <= 0) {
+                clearInterval(breakInterval);
+                startFocusTimer(); // Automatically restart the cycle
+            }
+        }, 1000);
+    }
+
+    // Update the Timer Display
+    function updateTimerDisplay(timeInSeconds) {
+        const minutes = Math.floor(timeInSeconds / 60);
+        const seconds = timeInSeconds % 60;
+        timerDisplay.textContent = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+    }
+
