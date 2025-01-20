@@ -14,7 +14,6 @@
     <nav>
       <ul>
         <li><a href="#tasks">Tasks</a></li>
-        <li><a href="#timers">Timers</a></li>
         <li><a href="#events">Events</a></li>
       </ul>
     </nav>
@@ -40,21 +39,6 @@
       </ul>
     </section>
 
-    <!-- Timers Section -->
-    <section id="timers">
-      <h2>Timers</h2>
-      <form id="timer-form">
-        <label for="focus-duration">Focus Duration (minutes):</label>
-        <input type="number" id="focus-duration" min="1" required>
-        <label for="break-duration">Break Duration (minutes):</label>
-        <input type="number" id="break-duration" min="1" required>
-        <button type="submit">Start Timer</button>
-      </form>
-      <div id="timer-display">
-        <!-- Timer display will be dynamically updated here -->
-      </div>
-    </section>
-
     <!-- Events Section -->
     <section id="events">
       <h2>Events</h2>
@@ -78,7 +62,7 @@
   </footer>
 
   <script type="module">
-    import { getDatabase, ref, set, push } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-database.js";
+    import { getDatabase, ref, set, push, onValue, update } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-database.js";
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
 
     const firebaseConfig = {
@@ -135,9 +119,7 @@
         alert('Task added successfully!');
 
         // Add task to the task list in the UI
-        const li = document.createElement('li');
-        li.textContent = `${title} (${category})`;
-        taskList.appendChild(li);
+        addTaskToUI(newTaskRef.key, title, category, false);
 
         // Reset the form
         taskForm.reset();
@@ -148,6 +130,50 @@
         alert('Failed to add task. Please try again.');
       }
     });
+
+    // Fetch tasks on page load and display them
+    function fetchTasks() {
+      const tasksRef = ref(database, 'tasks');
+      onValue(tasksRef, (snapshot) => {
+        const tasks = snapshot.val();
+        taskList.innerHTML = ''; // Clear the existing list
+        for (let key in tasks) {
+          const task = tasks[key];
+          if (!task.completed) {
+            addTaskToUI(key, task.title, task.category, task.completed);
+          }
+        }
+      });
+    }
+
+    // Add task to the UI
+    function addTaskToUI(taskId, title, category, completed) {
+      const li = document.createElement('li');
+      li.textContent = `${title} (${category})`;
+      
+      if (completed) {
+        li.style.textDecoration = 'line-through';
+      }
+
+      // Add checkbox to mark completion
+      const checkbox = document.createElement('input');
+      checkbox.type = 'checkbox';
+      checkbox.checked = completed;
+      checkbox.addEventListener('change', () => toggleTaskCompletion(taskId, checkbox.checked));
+
+      li.appendChild(checkbox);
+      taskList.appendChild(li);
+    }
+
+    // Toggle task completion in Firebase
+    function toggleTaskCompletion(taskId, completed) {
+      const taskRef = ref(database, 'tasks/' + taskId);
+      update(taskRef, { completed: completed });
+      fetchTasks(); // Refresh task list after completion
+    }
+
+    // Initial fetch
+    fetchTasks();
   </script>
 </body>
 </html>
