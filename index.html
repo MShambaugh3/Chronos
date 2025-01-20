@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chronos</title>
+  <link rel="stylesheet" href="styles.css"> <!-- Link to your CSS file -->
+  <script type="module" src="firebase.js"></script> <!-- Link to your Firebase JS file -->
+</head>
+<body>
+  <header>
+    <h1>Chronos</h1>
+    <nav>
+      <ul>
+        <li><a href="#tasks">Tasks</a></li>
+        <li><a href="#timers">Timers</a></li>
+        <li><a href="#events">Events</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main>
+    <!-- Tasks Section -->
+    <section id="tasks">
+      <h2>Tasks</h2>
+      <form id="task-form">
+        <input type="text" id="task-title" placeholder="Task Title" required>
+        <select id="task-category">
+          <option value="school">School</option>
+          <option value="life">Life</option>
+          <option value="afrotc">AFROTC</option>
+          <option value="misc">Misc</option>
+        </select>
+        <button type="submit">Add Task</button>
+      </form>
+      <ul id="task-list">
+        <!-- Task items will be dynamically added here -->
+      </ul>
+    </section>
+
+    <!-- Timers Section -->
+    <section id="timers">
+      <h2>Timers</h2>
+      <form id="timer-form">
+        <label for="focus-duration">Focus Duration (minutes):</label>
+        <input type="number" id="focus-duration" min="1" required>
+        <label for="break-duration">Break Duration (minutes):</label>
+        <input type="number" id="break-duration" min="1" required>
+        <button type="submit">Start Timer</button>
+      </form>
+      <div id="timer-display">
+        <!-- Timer display will be dynamically updated here -->
+      </div>
+    </section>
+
+    <!-- Events Section -->
+    <section id="events">
+      <h2>Events</h2>
+      <form id="event-form">
+        <input type="text" id="event-title" placeholder="Event Title" required>
+        <label for="start-time">Start Time:</label>
+        <input type="datetime-local" id="start-time" required>
+        <label for="end-time">End Time:</label>
+        <input type="datetime-local" id="end-time" required>
+        <textarea id="event-description" placeholder="Description"></textarea>
+        <button type="submit">Add Event</button>
+      </form>
+      <ul id="event-list">
+        <!-- Event items will be dynamically added here -->
+      </ul>
+    </section>
+  </main>
+
+  <footer>
+    <p>&copy; 2025 Chronos. All rights reserved.</p>
+  </footer>
+
+  <script>
+    // Task form submission logic
+    const taskForm = document.getElementById('task-form');
+    taskForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const title = document.getElementById('task-title').value;
+      const category = document.getElementById('task-category').value;
+
+      // Add task to Firestore
+      const taskId = `task-${Date.now()}`; // Unique ID based on timestamp
+      await addTaskToFirestore(taskId, { title, category, completed: false, createdAt: new Date() });
+
+      // Reset form and update task list
+      taskForm.reset();
+      alert('Task added successfully!');
+    });
+
+    // Add similar logic for Timers and Events sections here
+  </script>
+</body>
+</html>
