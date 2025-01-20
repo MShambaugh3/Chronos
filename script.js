@@ -1,12 +1,8 @@
-// Import the functions you need from the SDKs
+// Firebase imports
 import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
-import { getFirestore, doc, setDoc } from "firebase/firestore";
-import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "firebase/auth";
-import { getDatabase, ref, set, get, update } from "firebase/database";
-import { getStorage, ref as storageRef, uploadBytes } from "firebase/storage";
+import { getDatabase, ref, set, push, onValue, update } from "firebase/database";
 
-// Your web app's Firebase configuration
+// Firebase configuration
 const firebaseConfig = {
   apiKey: "AIzaSyDoSGJAFJkkq-EGvT3Zky6hR2_KEWO-Sw8",
   authDomain: "chronos-a67ec.firebaseapp.com",
@@ -20,123 +16,159 @@ const firebaseConfig = {
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
+const database = getDatabase(app);
 
-// Initialize Firebase services
-const db = getFirestore(app);          // Firestore Database
-const auth = getAuth(app);             // Authentication
-const database = getDatabase(app);     // Realtime Database
-const storage = getStorage(app);       // Storage
+// Dark Mode Toggle
+const darkModeToggle = document.getElementById('dark-mode-toggle');
+const body = document.body;
+darkModeToggle.addEventListener('click', toggleDarkMode);
 
-// Fetch and display tasks from Firebase Realtime Database
-async function fetchTasks() {
+function toggleDarkMode() {
+  body.classList.toggle('dark-mode');
+}
+
+// Task form submission logic
+const taskForm = document.getElementById('task-form');
+const taskList = document.getElementById('task-list');
+const taskCategory = document.getElementById('task-category');
+const customCategory = document.getElementById('custom-category');
+
+taskCategory.addEventListener('change', () => {
+  if (taskCategory.value === 'other') {
+    customCategory.style.display = 'block';
+    customCategory.required = true;
+  } else {
+    customCategory.style.display = 'none';
+    customCategory.required = false;
+  }
+});
+
+taskForm.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  const title = document.getElementById('task-title').value;
+  let category = taskCategory.value;
+
+  if (category === 'other') {
+    category = customCategory.value;
+  }
+
+  // Add task to Realtime Database
   const tasksRef = ref(database, 'tasks');
-  const snapshot = await get(tasksRef);
-  const taskList = document.getElementById('task-list');
-  taskList.innerHTML = ''; // Clear the current task list
-  snapshot.forEach((childSnapshot) => {
-    const task = childSnapshot.val();
-    const taskId = childSnapshot.key;
-    const li = document.createElement('li');
-    li.textContent = `${task.title} (${task.category})`;
+  const newTaskRef = push(tasksRef);
 
-    if (task.completed) {
-      li.classList.add('completed'); // Add 'completed' class if the task is marked as completed
+  try {
+    await set(newTaskRef, {
+      title: title,
+      category: category,
+      completed: false,
+      createdAt: new Date().toISOString()
+    });
+    alert('Task added successfully!');
+
+    // Add task to the task list in the UI
+    addTaskToUI(newTaskRef.key, title, category, false);
+
+    // Reset the form
+    taskForm.reset();
+    customCategory.style.display = 'none';
+    customCategory.required = false;
+  } catch (error) {
+    console.error('Error adding task:', error);
+    alert('Failed to add task. Please try again.');
+  }
+});
+
+// Fetch tasks on page load and display them
+function fetchTasks() {
+  const tasksRef = ref(database, 'tasks');
+  onValue(tasksRef, (snapshot) => {
+    const tasks = snapshot.val();
+    taskList.innerHTML = ''; // Clear the existing list
+    for (let key in tasks) {
+      const task = tasks[key];
+      if (!task.completed) {
+        addTaskToUI(key, task.title, task.category, task.completed);
+      }
     }
-
-    // Add a checkbox to mark the task as complete
-    const checkbox = document.createElement('input');
-    checkbox.type = 'checkbox';
-    checkbox.checked = task.completed;
-    checkbox.addEventListener('change', () => toggleTaskCompletion(taskId, checkbox, li));
-    li.appendChild(checkbox);
-
-    taskList.appendChild(li);
   });
 }
 
-// Task form submission
-document.addEventListener('DOMContentLoaded', () => {
-  const taskForm = document.getElementById('task-form');
-  const taskCategory = document.getElementById('task-category');
-  const customCategory = document.getElementById('custom-category');
+// Add task to the UI
+function addTaskToUI(taskId, title, category, completed) {
+  const li = document.createElement('li');
+  li.textContent = `${title} (${category})`;
 
-  taskCategory.addEventListener('change', () => {
-    if (taskCategory.value === 'other') {
-      customCategory.style.display = 'block';
-      customCategory.required = true;
-    } else {
-      customCategory.style.display = 'none';
-      customCategory.required = false;
-    }
-  });
-
-  // Add task to Realtime Database
-  taskForm.addEventListener('submit', async (event) => {
-    event.preventDefault();
-    const title = document.getElementById('task-title').value;
-    let category = taskCategory.value;
-
-    if (category === 'other') {
-      category = customCategory.value;
-    }
-
-    // Prevent duplicate task addition
-    const tasksRef = ref(database, 'tasks');
-    const snapshot = await get(tasksRef);
-    const existingTask = Object.values(snapshot.val()).some(task => task.title === title);
-
-    if (existingTask) {
-      alert('This task already exists!');
-      return;
-    }
-
-    // Add task to Realtime Database
-    const newTaskRef = ref(tasksRef).push();
-
-    try {
-      await set(newTaskRef, {
-        title: title,
-        category: category,
-        completed: false,
-        createdAt: new Date().toISOString()
-      });
-      alert('Task added successfully!');
-
-      // Add the new task directly to the DOM without refetching
-      const li = document.createElement('li');
-      li.textContent = `${title} (${category})`;
-      
-      const checkbox = document.createElement('input');
-      checkbox.type = 'checkbox';
-      checkbox.checked = false;
-      checkbox.addEventListener('change', () => toggleTaskCompletion(newTaskRef.key, checkbox, li));
-      
-      li.appendChild(checkbox);
-      document.getElementById('task-list').appendChild(li);
-
-      // Reset the form
-      taskForm.reset();
-      customCategory.style.display = 'none';
-      customCategory.required = false;
-    } catch (error) {
-      console.error('Error adding task:', error);
-      alert('Failed to add task. Please try again.');
-    }
-  });
-
-  // Toggle task completion
-  async function toggleTaskCompletion(taskId, checkbox, taskElement) {
-    const taskRef = ref(database, 'tasks/' + taskId);
-    
-    if (checkbox.checked) {
-      taskElement.classList.add('completed'); // Add 'completed' class to visually cross out the task
-      await update(taskRef, { completed: true });
-    } else {
-      taskElement.classList.remove('completed'); // Remove 'completed' class when unchecked
-      await update(taskRef, { completed: false });
-    }
+  if (completed) {
+    li.classList.add('completed');
   }
 
-  fetchTasks(); // Initial fetch to load tasks from Firebase
+  // Add checkbox to mark completion
+  const checkbox = document.createElement('input');
+  checkbox.type = 'checkbox';
+  checkbox.checked = completed;
+  checkbox.addEventListener('change', () => toggleTaskCompletion(taskId, checkbox.checked));
+
+  li.appendChild(checkbox);
+  taskList.appendChild(li);
+}
+
+// Toggle task completion in Firebase
+function toggleTaskCompletion(taskId, completed) {
+  const taskRef = ref(database, 'tasks/' + taskId);
+  update(taskRef, { completed: completed });
+  fetchTasks(); // Refresh task list after completion
+}
+
+// Notes Page - Drawing & Typing
+const notesForm = document.getElementById('notes-form');
+const drawingCanvas = document.getElementById('drawing-canvas');
+const ctx = drawingCanvas.getContext('2d');
+let isDrawing = false;
+
+// Set up drawing canvas
+drawingCanvas.addEventListener('mousedown', () => isDrawing = true);
+drawingCanvas.addEventListener('mouseup', () => isDrawing = false);
+drawingCanvas.addEventListener('mousemove', draw);
+
+function draw(event) {
+  if (!isDrawing) return;
+  
+  ctx.lineWidth = 5;
+  ctx.lineCap = 'round';
+  ctx.strokeStyle = '#000000';
+
+  ctx.beginPath();
+  ctx.moveTo(event.offsetX, event.offsetY);
+  ctx.lineTo(event.offsetX, event.offsetY);
+  ctx.stroke();
+}
+
+// Save drawing and notes to Firebase
+notesForm.addEventListener('submit', async (event) => {
+  event.preventDefault();
+
+  const drawingData = drawingCanvas.toDataURL(); // Save the canvas drawing as a base64 image
+  const noteContent = document.getElementById('note-content').value;
+
+  const notesRef = ref(database, 'notes');
+  const newNoteRef = push(notesRef);
+
+  try {
+    await set(newNoteRef, {
+      content: noteContent,
+      drawing: drawingData,
+      createdAt: new Date().toISOString()
+    });
+    alert('Note saved successfully!');
+
+    // Clear the form after saving
+    notesForm.reset();
+    ctx.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height);
+  } catch (error) {
+    console.error('Error saving note:', error);
+    alert('Failed to save note. Please try again.');
+  }
 });
+
+// Initial fetch for tasks
+fetchTasks();
