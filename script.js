@@ -1,9 +1,9 @@
 // Import the functions you need from the SDKs
 import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
-import { getFirestore, doc, setDoc, getDoc, updateDoc } from "firebase/firestore";
+import { getFirestore, doc, setDoc } from "firebase/firestore";
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "firebase/auth";
-import { getDatabase, ref, set, get, remove, update } from "firebase/database";
+import { getDatabase, ref, set, get, update } from "firebase/database";
 import { getStorage, ref as storageRef, uploadBytes } from "firebase/storage";
 
 // Your web app's Firebase configuration
@@ -78,28 +78,36 @@ async function uploadFileToStorage(filePath, file) {
   }
 }
 
-// Example Usage
-// Uncomment and replace with your test data to test each function
+// Fetch and display tasks from Firebase Realtime Database
+async function fetchTasks() {
+  const tasksRef = ref(database, 'tasks');
+  const snapshot = await get(tasksRef);
+  const taskList = document.getElementById('task-list');
+  taskList.innerHTML = ''; // Clear the current task list
+  snapshot.forEach((childSnapshot) => {
+    const task = childSnapshot.val();
+    const taskId = childSnapshot.key;
+    const li = document.createElement('li');
+    li.textContent = `${task.title} (${task.category})`;
 
-// Add a task to Firestore
-// addTaskToFirestore("task1", { title: "Learn Firebase", completed: false, createdAt: new Date() });
+    if (task.completed) {
+      li.classList.add('completed'); // Add 'completed' class if the task is marked as completed
+    }
 
-// Save data to Realtime Database
-// saveDataToRealtimeDB("notes/note1", { content: "This is a test note.", createdAt: new Date() });
+    // Add a checkbox to mark the task as complete
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.checked = task.completed;
+    checkbox.addEventListener('change', () => toggleTaskCompletion(taskId, checkbox, li));
+    li.appendChild(checkbox);
 
-// Sign up a new user
-// signUp("testuser@example.com", "password123");
+    taskList.appendChild(li);
+  });
+}
 
-// Sign in an existing user
-// signIn("testuser@example.com", "password123");
-
-// Upload a file to Firebase Storage
-// const file = new File(["Hello, Firebase!"], "hello.txt", { type: "text/plain" });
-// uploadFileToStorage("uploads/hello.txt", file);
-
+// Task form submission
 document.addEventListener('DOMContentLoaded', () => {
   const taskForm = document.getElementById('task-form');
-  const taskList = document.getElementById('task-list');
   const taskCategory = document.getElementById('task-category');
   const customCategory = document.getElementById('custom-category');
 
@@ -113,33 +121,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // Fetch and display tasks from Firebase Realtime Database
-  async function fetchTasks() {
-    const tasksRef = ref(database, 'tasks');
-    const snapshot = await get(tasksRef);
-    taskList.innerHTML = ''; // Clear the current task list
-    snapshot.forEach((childSnapshot) => {
-      const task = childSnapshot.val();
-      const taskId = childSnapshot.key;
-      if (!task.completed) {
-        const li = document.createElement('li');
-        li.textContent = `${task.title} (${task.category})`;
-        
-        // Add a checkbox to mark the task as complete
-        const checkbox = document.createElement('input');
-        checkbox.type = 'checkbox';
-        checkbox.checked = task.completed;
-        checkbox.addEventListener('change', () => toggleTaskCompletion(taskId, checkbox.checked));
-        li.appendChild(checkbox);
-        
-        taskList.appendChild(li);
-      }
-    });
-  }
-
-  fetchTasks(); // Initial fetch to load tasks from Firebase
-
-  // Add task form submission
+  // Add task to Realtime Database
   taskForm.addEventListener('submit', async (event) => {
     event.preventDefault();
     const title = document.getElementById('task-title').value;
@@ -174,15 +156,17 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // Toggle task completion
-  async function toggleTaskCompletion(taskId, completed) {
+  async function toggleTaskCompletion(taskId, checkbox, taskElement) {
     const taskRef = ref(database, 'tasks/' + taskId);
-    if (completed) {
-      // Mark task as completed and remove from UI
+    
+    if (checkbox.checked) {
+      taskElement.classList.add('completed'); // Add 'completed' class to visually cross out the task
       await update(taskRef, { completed: true });
-      fetchTasks(); // Refresh task list after completion
     } else {
-      // Update task to incomplete
+      taskElement.classList.remove('completed'); // Remove 'completed' class when unchecked
       await update(taskRef, { completed: false });
     }
   }
+
+  fetchTasks(); // Initial fetch to load tasks from Firebase
 });
