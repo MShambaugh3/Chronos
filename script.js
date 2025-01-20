@@ -1,9 +1,9 @@
 // Import the functions you need from the SDKs
 import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
-import { getFirestore, doc, setDoc } from "firebase/firestore";
+import { getFirestore, doc, setDoc, getDoc, updateDoc } from "firebase/firestore";
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "firebase/auth";
-import { getDatabase, ref, set } from "firebase/database";
+import { getDatabase, ref, set, get, remove, update } from "firebase/database";
 import { getStorage, ref as storageRef, uploadBytes } from "firebase/storage";
 
 // Your web app's Firebase configuration
@@ -97,55 +97,92 @@ async function uploadFileToStorage(filePath, file) {
 // const file = new File(["Hello, Firebase!"], "hello.txt", { type: "text/plain" });
 // uploadFileToStorage("uploads/hello.txt", file);
 
-
 document.addEventListener('DOMContentLoaded', () => {
-  const timerForm = document.getElementById('timer-form');
-  const timerDisplay = document.getElementById('timer-display');
-  let focusTime, breakTime;
-  let focusInterval, breakInterval;
+  const taskForm = document.getElementById('task-form');
+  const taskList = document.getElementById('task-list');
+  const taskCategory = document.getElementById('task-category');
+  const customCategory = document.getElementById('custom-category');
 
-  // Start Timer logic
-  timerForm.addEventListener('submit', (event) => {
-    event.preventDefault();
-
-    focusTime = parseInt(document.getElementById('focus-duration').value) * 60; // Convert minutes to seconds
-    breakTime = parseInt(document.getElementById('break-duration').value) * 60; // Convert minutes to seconds
-
-    // Start Focus Timer
-    startFocusTimer();
+  taskCategory.addEventListener('change', () => {
+    if (taskCategory.value === 'other') {
+      customCategory.style.display = 'block';
+      customCategory.required = true;
+    } else {
+      customCategory.style.display = 'none';
+      customCategory.required = false;
+    }
   });
 
-  // Start the Focus Timer
-  function startFocusTimer() {
-    clearInterval(breakInterval); // Clear any previous break timer
-    updateTimerDisplay(focusTime);
-    focusInterval = setInterval(() => {
-      focusTime--;
-      updateTimerDisplay(focusTime);
-      if (focusTime <= 0) {
-        clearInterval(focusInterval);
-        startBreakTimer();
+  // Fetch and display tasks from Firebase Realtime Database
+  async function fetchTasks() {
+    const tasksRef = ref(database, 'tasks');
+    const snapshot = await get(tasksRef);
+    taskList.innerHTML = ''; // Clear the current task list
+    snapshot.forEach((childSnapshot) => {
+      const task = childSnapshot.val();
+      const taskId = childSnapshot.key;
+      if (!task.completed) {
+        const li = document.createElement('li');
+        li.textContent = `${task.title} (${task.category})`;
+        
+        // Add a checkbox to mark the task as complete
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.checked = task.completed;
+        checkbox.addEventListener('change', () => toggleTaskCompletion(taskId, checkbox.checked));
+        li.appendChild(checkbox);
+        
+        taskList.appendChild(li);
       }
-    }, 1000);
+    });
   }
 
-  // Start the Break Timer
-  function startBreakTimer() {
-    updateTimerDisplay(breakTime);
-    breakInterval = setInterval(() => {
-      breakTime--;
-      updateTimerDisplay(breakTime);
-      if (breakTime <= 0) {
-        clearInterval(breakInterval);
-        startFocusTimer(); // Automatically restart the cycle
-      }
-    }, 1000);
-  }
+  fetchTasks(); // Initial fetch to load tasks from Firebase
 
-  // Update the Timer Display
-  function updateTimerDisplay(timeInSeconds) {
-    const minutes = Math.floor(timeInSeconds / 60);
-    const seconds = timeInSeconds % 60;
-    timerDisplay.textContent = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+  // Add task form submission
+  taskForm.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const title = document.getElementById('task-title').value;
+    let category = taskCategory.value;
+
+    if (category === 'other') {
+      category = customCategory.value;
+    }
+
+    // Add task to Realtime Database
+    const tasksRef = ref(database, 'tasks');
+    const newTaskRef = ref(tasksRef);
+
+    try {
+      await set(newTaskRef, {
+        title: title,
+        category: category,
+        completed: false,
+        createdAt: new Date().toISOString()
+      });
+      alert('Task added successfully!');
+      fetchTasks(); // Refresh task list after adding
+
+      // Reset the form
+      taskForm.reset();
+      customCategory.style.display = 'none';
+      customCategory.required = false;
+    } catch (error) {
+      console.error('Error adding task:', error);
+      alert('Failed to add task. Please try again.');
+    }
+  });
+
+  // Toggle task completion
+  async function toggleTaskCompletion(taskId, completed) {
+    const taskRef = ref(database, 'tasks/' + taskId);
+    if (completed) {
+      // Mark task as completed and remove from UI
+      await update(taskRef, { completed: true });
+      fetchTasks(); // Refresh task list after completion
+    } else {
+      // Update task to incomplete
+      await update(taskRef, { completed: false });
+    }
   }
 });
