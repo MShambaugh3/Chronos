@@ -1,126 +1,115 @@
 /* General Styles */
 body {
-  font-family: 'Helvetica Neue', sans-serif;
-  background-color: #121212;
-  color: white;
+  font-family: Helvetica, Arial, sans-serif;
   margin: 0;
   padding: 0;
-  box-sizing: border-box;
+  background-color: white; /* Default light mode background */
+  color: black;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-header {
-  background-color: #1d1d1d;
+/* Dark Mode */
+body.dark-mode {
+  background-color: black;
+  color: white;
+}
+
+body.dark-mode .save-button,
+body.dark-mode .dark-mode-button {
+  background-color: #006400; /* Code Green for Dark Mode */
+  color: white;
+}
+
+body.dark-mode .save-button:hover,
+body.dark-mode .dark-mode-button:hover {
+  background-color: #004d00; /* Darker Green for hover effect */
+}
+
+/* Light Mode */
+body:not(.dark-mode) {
+  background-color: white;
+  color: black;
+}
+
+body:not(.dark-mode) .save-button,
+body:not(.dark-mode) .dark-mode-button {
+  background-color: midnight; /* Midnight color for light mode */
+  color: white;
+}
+
+body:not(.dark-mode) .save-button:hover,
+body:not(.dark-mode) .dark-mode-button:hover {
+  background-color: #2e3b49; /* 20% darker midnight for hover effect */
+}
+
+/* Notes Section */
+#notes {
   padding: 20px;
-  text-align: center;
-  border-bottom: 2px solid #333;
-}
-
-header h1 {
-  margin: 0;
-  color: #1db954; /* Dark Green */
-}
-
-nav ul {
-  list-style-type: none;
-  padding: 0;
-}
-
-nav ul li {
-  display: inline;
-  margin: 0 10px;
-}
-
-nav ul li a {
-  color: white;
-  text-decoration: none;
-}
-
-main {
-  padding: 20px;
-}
-
-button {
-  background-color: #1db954;
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  cursor: pointer;
-  border-radius: 5px;
-}
-
-button:hover {
-  background-color: #188b46; /* Darker Green on Hover */
-}
-
-footer {
-  text-align: center;
-  padding: 10px;
-  background-color: #1d1d1d;
-  color: #aaa;
-}
-
-/* Task Section Styles */
-#task-list {
-  list-style-type: none;
-  padding: 0;
-}
-
-#task-list li {
-  padding: 10px;
-  border-bottom: 1px solid #333;
-  display: flex;
-  align-items: center;
-}
-
-.completed {
-  text-decoration: line-through;
-  color: gray;
-}
-
-#task-list input[type="checkbox"] {
-  margin-right: 10px;
-}
-
-/* Dark Mode Styles */
-.dark-mode {
-  background-color: #212121;
-  color: white;
-}
-
-.dark-mode button {
-  background-color: #1d1d1d;
-}
-
-.dark-mode header {
-  background-color: #121212;
-}
-
-/* Toggle Button for Dark Mode */
-#dark-mode-toggle {
-  position: fixed;
-  bottom: 10px;
-  right: 10px;
-  background-color: #1d1d1d;
-  color: white;
-  padding: 10px 20px;
-  border-radius: 25px;
-  cursor: pointer;
-}
-
-#dark-mode-toggle:hover {
-  background-color: #333;
-}
-
-/* Notes Page Styles (Drawing & Typing) */
-#notes-section {
-  height: 80vh;
-  border: 1px solid #333;
-  padding: 20px;
-}
-
-#drawing-canvas {
+  margin: 20px;
+  border-radius: 10px;
   background-color: #f4f4f4;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+#notes h2 {
+  font-size: 24px;
+  margin-bottom: 10px;
+}
+
+/* Textarea */
+#note-text {
   width: 100%;
-  height: 60vh;
-  border: 2px solid #ccc;
+  height: 150px;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 16px;
+  background-color: #fff;
+  color: black;
+  margin-bottom: 20px;
+  resize: none;
+}
+
+#note-text:focus {
+  outline: none;
+  border-color: #006400; /* Green focus border */
+}
+
+/* Canvas */
+#note-canvas {
+  border: 1px solid #ccc;
+  margin-bottom: 20px;
+  background-color: #eaeaea;
+}
+
+/* Buttons */
+button {
+  padding: 10px 20px;
+  font-size: 16px;
+  border-radius: 5px;
+  border: none;
+  cursor: pointer;
+}
+
+.save-button {
+  background-color: #006400; /* Code Green */
+  color: white;
+}
+
+.save-button:hover {
+  background-color: #004d00; /* Darker Green */
+}
+
+/* Dark Mode Button */
+.dark-mode-button {
+  background-color: #4e4e4e;
+  color: white;
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  border-radius: 50%;
+}
+
+.dark-mode-button:hover {
+  background-color: #333;
 }
