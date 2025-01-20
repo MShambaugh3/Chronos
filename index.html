@@ -75,24 +75,59 @@
     <p>&copy; 2025 Chronos. All rights reserved.</p>
   </footer>
 
-  <script>
+  <script type="module">
+    import { getDatabase, ref, set, push } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-database.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDoSGJAFJkkq-EGvT3Zky6hR2_KEWO-Sw8",
+      authDomain: "chronos-a67ec.firebaseapp.com",
+      databaseURL: "https://chronos-a67ec-default-rtdb.firebaseio.com",
+      projectId: "chronos-a67ec",
+      storageBucket: "chronos-a67ec.appspot.com",
+      messagingSenderId: "900789594969",
+      appId: "1:900789594969:web:37ebbc328fb7bb3f3bba48",
+      measurementId: "G-JYZMTS9ZKH"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const database = getDatabase(app);
+
     // Task form submission logic
     const taskForm = document.getElementById('task-form');
+    const taskList = document.getElementById('task-list');
+
     taskForm.addEventListener('submit', async (event) => {
       event.preventDefault();
       const title = document.getElementById('task-title').value;
       const category = document.getElementById('task-category').value;
 
-      // Add task to Firestore
-      const taskId = `task-${Date.now()}`; // Unique ID based on timestamp
-      await addTaskToFirestore(taskId, { title, category, completed: false, createdAt: new Date() });
+      // Add task to Realtime Database
+      const tasksRef = ref(database, 'tasks');
+      const newTaskRef = push(tasksRef);
 
-      // Reset form and update task list
-      taskForm.reset();
-      alert('Task added successfully!');
+      try {
+        await set(newTaskRef, {
+          title: title,
+          category: category,
+          completed: false,
+          createdAt: new Date().toISOString()
+        });
+        alert('Task added successfully!');
+
+        // Add task to the task list in the UI
+        const li = document.createElement('li');
+        li.textContent = `${title} (${category})`;
+        taskList.appendChild(li);
+
+        // Reset the form
+        taskForm.reset();
+      } catch (error) {
+        console.error('Error adding task:', error);
+        alert('Failed to add task. Please try again.');
+      }
     });
-
-    // Add similar logic for Timers and Events sections here
   </script>
 </body>
 </html>
