@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chronos - Tasks</title>
+  <link rel="stylesheet" href="styles.css">
+  <script type="module" src="firebase.js"></script>
+  <script type="module" src="script.js"></script>
+</head>
+<body>
+  <header>
+    <h1>Chronos - Task View</h1>
+    <nav>
+      <ul>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="taskview.html">Tasks</a></li>
+        <li><a href="notes.html">Notes</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main>
+    <section id="tasks">
+      <h2>Task List</h2>
+      <ul id="task-list">
+        <!-- Task items will be dynamically added here -->
+      </ul>
+    </section>
+    
+    <!-- Dark Mode Toggle Button -->
+    <button id="dark-mode-toggle" class="dark-mode-button">Toggle Dark Mode</button>
+  </main>
+
+  <footer>
+    <p>&copy; 2025 Chronos. All rights reserved.</p>
+  </footer>
+
+  <script type="module">
+    import { getDatabase, ref, onValue, update } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-database.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDoSGJAFJkkq-EGvT3Zky6hR2_KEWO-Sw8",
+      authDomain: "chronos-a67ec.firebaseapp.com",
+      databaseURL: "https://chronos-a67ec-default-rtdb.firebaseio.com",
+      projectId: "chronos-a67ec",
+      storageBucket: "chronos-a67ec.appspot.com",
+      messagingSenderId: "900789594969",
+      appId: "1:900789594969:web:37ebbc328fb7bb3f3bba48",
+      measurementId: "G-JYZMTS9ZKH"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const database = getDatabase(app);
+
+    const taskList = document.getElementById('task-list');
+
+    // Fetch tasks on page load and display them
+    function fetchTasks() {
+      const tasksRef = ref(database, 'tasks');
+      onValue(tasksRef, (snapshot) => {
+        const tasks = snapshot.val();
+        taskList.innerHTML = ''; // Clear the existing list
+        for (let key in tasks) {
+          const task = tasks[key];
+          if (!task.completed) {
+            addTaskToUI(key, task.title, task.category, task.createdAt);
+          }
+        }
+      });
+    }
+
+    // Add task to the UI
+    function addTaskToUI(taskId, title, category, createdAt) {
+      const li = document.createElement('li');
+      li.textContent = `${title} (${category}) - Created at: ${new Date(createdAt).toLocaleString()}`;
+
+      // Add checkbox to mark completion
+      const checkbox = document.createElement('input');
+      checkbox.type = 'checkbox';
+      checkbox.addEventListener('change', () => toggleTaskCompletion(taskId, checkbox.checked));
+
+      li.appendChild(checkbox);
+      taskList.appendChild(li);
+    }
+
+    // Toggle task completion in Firebase
+    function toggleTaskCompletion(taskId, completed) {
+      const taskRef = ref(database, 'tasks/' + taskId);
+      update(taskRef, { completed: completed });
+      fetchTasks(); // Refresh task list after completion
+    }
+
+    // Initial fetch
+    fetchTasks();
+
+    // Dark mode toggle logic
+    const darkModeButton = document.getElementById('dark-mode-toggle');
+    darkModeButton.addEventListener('click', () => {
+      document.body.classList.toggle('dark-mode');
+      darkModeButton.textContent = document.body.classList.contains('dark-mode') ? 'Light Mode' : 'Dark Mode';
+    });
+  </script>
+</body>
+</html>
