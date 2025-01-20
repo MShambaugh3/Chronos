@@ -102,7 +102,18 @@ document.addEventListener('DOMContentLoaded', () => {
         createdAt: new Date().toISOString()
       });
       alert('Task added successfully!');
-      fetchTasks(); // Refresh task list after adding
+
+      // Add the new task directly to the DOM without refetching
+      const li = document.createElement('li');
+      li.textContent = `${title} (${category})`;
+      
+      const checkbox = document.createElement('input');
+      checkbox.type = 'checkbox';
+      checkbox.checked = false;
+      checkbox.addEventListener('change', () => toggleTaskCompletion(newTaskRef.key, checkbox, li));
+      
+      li.appendChild(checkbox);
+      document.getElementById('task-list').appendChild(li);
 
       // Reset the form
       taskForm.reset();
