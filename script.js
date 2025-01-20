@@ -28,56 +28,6 @@ const auth = getAuth(app);             // Authentication
 const database = getDatabase(app);     // Realtime Database
 const storage = getStorage(app);       // Storage
 
-// Example 1: Add a document to Firestore
-async function addTaskToFirestore(taskId, taskData) {
-  try {
-    await setDoc(doc(db, "tasks", taskId), taskData);
-    console.log("Task added to Firestore successfully!");
-  } catch (error) {
-    console.error("Error adding task to Firestore:", error);
-  }
-}
-
-// Example 2: Save data to Realtime Database
-async function saveDataToRealtimeDB(path, data) {
-  try {
-    await set(ref(database, path), data);
-    console.log("Data saved to Realtime Database successfully!");
-  } catch (error) {
-    console.error("Error saving data to Realtime Database:", error);
-  }
-}
-
-// Example 3: Authentication (Sign Up and Sign In)
-async function signUp(email, password) {
-  try {
-    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-    console.log("User signed up successfully!", userCredential.user);
-  } catch (error) {
-    console.error("Error signing up:", error.message);
-  }
-}
-
-async function signIn(email, password) {
-  try {
-    const userCredential = await signInWithEmailAndPassword(auth, email, password);
-    console.log("User signed in successfully!", userCredential.user);
-  } catch (error) {
-    console.error("Error signing in:", error.message);
-  }
-}
-
-// Example 4: Upload a file to Firebase Storage
-async function uploadFileToStorage(filePath, file) {
-  try {
-    const storageReference = storageRef(storage, filePath);
-    await uploadBytes(storageReference, file);
-    console.log("File uploaded to Firebase Storage successfully!");
-  } catch (error) {
-    console.error("Error uploading file:", error);
-  }
-}
-
 // Fetch and display tasks from Firebase Realtime Database
 async function fetchTasks() {
   const tasksRef = ref(database, 'tasks');
@@ -131,9 +81,18 @@ document.addEventListener('DOMContentLoaded', () => {
       category = customCategory.value;
     }
 
-    // Add task to Realtime Database
+    // Prevent duplicate task addition
     const tasksRef = ref(database, 'tasks');
-    const newTaskRef = ref(tasksRef);
+    const snapshot = await get(tasksRef);
+    const existingTask = Object.values(snapshot.val()).some(task => task.title === title);
+
+    if (existingTask) {
+      alert('This task already exists!');
+      return;
+    }
+
+    // Add task to Realtime Database
+    const newTaskRef = ref(tasksRef).push();
 
     try {
       await set(newTaskRef, {
