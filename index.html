@@ -3,24 +3,25 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Chronos</title>
-  <link rel="stylesheet" href="styles.css"> <!-- Link to your CSS file -->
-  <script type="module" src="firebase.js"></script> <!-- Link to your Firebase JS file if you need it -->
-  <script type="module" src="script.js"></script> <!-- Link to your script.js file -->
+  <title>Chronos - Home</title>
+  <link rel="stylesheet" href="styles.css">
+  <script type="module" src="firebase.js"></script>
+  <script type="module" src="script.js"></script>
 </head>
 <body>
   <header>
     <h1>Chronos</h1>
     <nav>
       <ul>
-        <li><a href="#tasks">Tasks</a></li>
-        <li><a href="#events">Events</a></li>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="taskview.html">Tasks</a></li>
+        <li><a href="notes.html">Notes</a></li>
       </ul>
     </nav>
   </header>
 
   <main>
-    <!-- Tasks Section -->
+    <!-- Home Page -->
     <section id="tasks">
       <h2>Tasks</h2>
       <form id="task-form">
@@ -34,27 +35,14 @@
         <input type="text" id="custom-category" placeholder="Custom Category" style="display: none;">
         <button type="submit">Add Task</button>
       </form>
+
       <ul id="task-list">
         <!-- Task items will be dynamically added here -->
       </ul>
     </section>
-
-    <!-- Events Section -->
-    <section id="events">
-      <h2>Events</h2>
-      <form id="event-form">
-        <input type="text" id="event-title" placeholder="Event Title" required>
-        <label for="start-time">Start Time:</label>
-        <input type="datetime-local" id="start-time" required>
-        <label for="end-time">End Time:</label>
-        <input type="datetime-local" id="end-time" required>
-        <textarea id="event-description" placeholder="Description"></textarea>
-        <button type="submit">Add Event</button>
-      </form>
-      <ul id="event-list">
-        <!-- Event items will be dynamically added here -->
-      </ul>
-    </section>
+    
+    <!-- Dark Mode Toggle Button -->
+    <button id="dark-mode-toggle" class="dark-mode-button">Toggle Dark Mode</button>
   </main>
 
   <footer>
@@ -174,6 +162,13 @@
 
     // Initial fetch
     fetchTasks();
+
+    // Dark mode toggle logic
+    const darkModeButton = document.getElementById('dark-mode-toggle');
+    darkModeButton.addEventListener('click', () => {
+      document.body.classList.toggle('dark-mode');
+      darkModeButton.textContent = document.body.classList.contains('dark-mode') ? 'Light Mode' : 'Dark Mode';
+    });
   </script>
 </body>
 </html>
