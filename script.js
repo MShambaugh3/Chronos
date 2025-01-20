@@ -18,14 +18,25 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const database = getDatabase(app);
 
-// Dark Mode Toggle
-const darkModeToggle = document.getElementById('dark-mode-toggle');
-const body = document.body;
-darkModeToggle.addEventListener('click', toggleDarkMode);
-
+// Function to toggle between light and dark modes
 function toggleDarkMode() {
-  body.classList.toggle('dark-mode');
+  const body = document.body;
+  body.classList.toggle('dark-mode'); // Toggles the dark mode class on the body
+  localStorage.setItem('mode', body.classList.contains('dark-mode') ? 'dark' : 'light');
 }
+
+// Check if dark mode was previously saved in localStorage
+document.addEventListener('DOMContentLoaded', () => {
+  const savedMode = localStorage.getItem('mode');
+  if (savedMode === 'dark') {
+    document.body.classList.add('dark-mode');
+  }
+
+  // Add event listener for dark mode button
+  const darkModeButton = document.querySelector('.dark-mode-button');
+  darkModeButton.addEventListener('click', toggleDarkMode);
+});
+
 
 // Task form submission logic
 const taskForm = document.getElementById('task-form');
