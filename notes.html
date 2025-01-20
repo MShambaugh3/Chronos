@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chronos - Notes</title>
+  <link rel="stylesheet" href="styles.css">
+  <script type="module" src="firebase.js"></script>
+  <script type="module" src="script.js"></script>
+</head>
+<body>
+  <header>
+    <h1>Chronos - Notes</h1>
+    <nav>
+      <ul>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="taskview.html">Tasks</a></li>
+        <li><a href="notes.html">Notes</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main>
+    <section id="notes">
+      <h2>Your Notes</h2>
+
+      <!-- Textarea for typing notes -->
+      <textarea id="note-text" placeholder="Type your notes here..." rows="10" cols="50"></textarea>
+      <br>
+      
+      <!-- Canvas for drawing -->
+      <canvas id="note-canvas" width="500" height="300"></canvas>
+      <br>
+      
+      <button id="save-note" class="save-button">Save Note</button>
+    </section>
+
+    <!-- Dark Mode Toggle Button -->
+    <button id="dark-mode-toggle" class="dark-mode-button">Toggle Dark Mode</button>
+  </main>
+
+  <footer>
+    <p>&copy; 2025 Chronos. All rights reserved.</p>
+  </footer>
+
+  <script type="module">
+    import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-database.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDoSGJAFJkkq-EGvT3Zky6hR2_KEWO-Sw8",
+      authDomain: "chronos-a67ec.firebaseapp.com",
+      databaseURL: "https://chronos-a67ec-default-rtdb.firebaseio.com",
+      projectId: "chronos-a67ec",
+      storageBucket: "chronos-a67ec.appspot.com",
+      messagingSenderId: "900789594969",
+      appId: "1:900789594969:web:37ebbc328fb7bb3f3bba48",
+      measurementId: "G-JYZMTS9ZKH"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const database = getDatabase(app);
+
+    // Elements
+    const noteText = document.getElementById('note-text');
+    const noteCanvas = document.getElementById('note-canvas');
+    const saveNoteButton = document.getElementById('save-note');
+    const darkModeButton = document.getElementById('dark-mode-toggle');
+
+    // Set up canvas drawing functionality
+    const ctx = noteCanvas.getContext('2d');
+    let drawing = false;
+
+    noteCanvas.addEventListener('mousedown', () => {
+      drawing = true;
+    });
+
+    noteCanvas.addEventListener('mouseup', () => {
+      drawing = false;
+    });
+
+    noteCanvas.addEventListener('mousemove', (event) => {
+      if (drawing) {
+        const x = event.offsetX;
+        const y = event.offsetY;
+        ctx.lineTo(x, y);
+        ctx.stroke();
+      }
+    });
+
+    // Save the note (text and drawing) to Firebase
+    saveNoteButton.addEventListener('click', () => {
+      const noteContent = noteText.value;
+      const noteDrawing = noteCanvas.toDataURL(); // Convert canvas drawing to an image data URL
+
+      const newNoteRef = ref(database, 'notes/' + Date.now());
+      set(newNoteRef, {
+        text: noteContent,
+        drawing: noteDrawing,
+        timestamp: Date.now()
+      }).then(() => {
+        alert('Note saved successfully!');
+        noteText.value = ''; // Clear the text
+        ctx.clearRect(0, 0, noteCanvas.width, noteCanvas.height); // Clear the canvas
+      }).catch((error) => {
+        console.error('Error saving note:', error);
+        alert('Failed to save note.');
+      });
+    });
+
+    // Dark mode toggle logic
+    darkModeButton.addEventListener('click', () => {
+      document.body.classList.toggle('dark-mode');
+      darkModeButton.textContent = document.body.classList.contains('dark-mode') ? 'Light Mode' : 'Dark Mode';
+    });
+  </script>
+</body>
+</html>
