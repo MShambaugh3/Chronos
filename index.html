@@ -29,8 +29,9 @@
           <option value="school">School</option>
           <option value="life">Life</option>
           <option value="afrotc">AFROTC</option>
-          <option value="misc">Misc</option>
+          <option value="other">Other</option>
         </select>
+        <input type="text" id="custom-category" placeholder="Custom Category" style="display: none;">
         <button type="submit">Add Task</button>
       </form>
       <ul id="task-list">
@@ -97,11 +98,27 @@
     // Task form submission logic
     const taskForm = document.getElementById('task-form');
     const taskList = document.getElementById('task-list');
+    const taskCategory = document.getElementById('task-category');
+    const customCategory = document.getElementById('custom-category');
+
+    taskCategory.addEventListener('change', () => {
+      if (taskCategory.value === 'other') {
+        customCategory.style.display = 'block';
+        customCategory.required = true;
+      } else {
+        customCategory.style.display = 'none';
+        customCategory.required = false;
+      }
+    });
 
     taskForm.addEventListener('submit', async (event) => {
       event.preventDefault();
       const title = document.getElementById('task-title').value;
-      const category = document.getElementById('task-category').value;
+      let category = taskCategory.value;
+
+      if (category === 'other') {
+        category = customCategory.value;
+      }
 
       // Add task to Realtime Database
       const tasksRef = ref(database, 'tasks');
@@ -123,6 +140,8 @@
 
         // Reset the form
         taskForm.reset();
+        customCategory.style.display = 'none';
+        customCategory.required = false;
       } catch (error) {
         console.error('Error adding task:', error);
         alert('Failed to add task. Please try again.');
